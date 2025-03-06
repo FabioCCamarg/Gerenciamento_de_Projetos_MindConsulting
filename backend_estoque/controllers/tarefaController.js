@@ -1,63 +1,67 @@
-const tarefas = require('../models/tarefa');
+const Tarefa = require('../models/tarefa');
 
 // Criar uma tarefa
-exports.criarTarefa = (req, res) => {
+exports.criarTarefa = async (req, res) => {
     const { titulo, descricao, status, projetoId, usuarioId } = req.body;
 
     if (!titulo || !projetoId || !usuarioId) {
         return res.status(400).json({ error: 'Título, ID do projeto e ID do usuário são obrigatórios' });
     }
 
-    const novaTarefa = { id: tarefas.length + 1, titulo, descricao, status: status || 'pendente', projetoId, usuarioId };
-    tarefas.push(novaTarefa);
-
-    res.status(201).json(novaTarefa);
+    try {
+        const id = await Tarefa.criar({ titulo, descricao, status: status || 'pendente', projetoId, usuarioId });
+        res.status(201).json({ id, titulo, descricao, status, projetoId, usuarioId });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
 // Obter todas as tarefas
-exports.obterTodas = (req, res) => {
-    res.status(200).json(tarefas);
+exports.obterTodas = async (req, res) => {
+    try {
+        const tarefas = await Tarefa.obterTodas();
+        res.status(200).json(tarefas);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
 // Obter uma tarefa por ID
-exports.obterPorId = (req, res) => {
+exports.obterPorId = async (req, res) => {
     const id = parseInt(req.params.id);
-    const tarefa = tarefas.find(t => t.id === id);
 
-    if (!tarefa) {
-        return res.status(404).json({ error: 'Tarefa não encontrada' });
+    try {
+        const tarefa = await Tarefa.obterPorId(id);
+        if (!tarefa) {
+            return res.status(404).json({ error: 'Tarefa não encontrada' });
+        }
+        res.status(200).json(tarefa);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    res.status(200).json(tarefa);
 };
 
 // Atualizar uma tarefa
-exports.atualizarTarefa = (req, res) => {
+exports.atualizarTarefa = async (req, res) => {
     const id = parseInt(req.params.id);
     const { titulo, descricao, status } = req.body;
 
-    const tarefa = tarefas.find(t => t.id === id);
-
-    if (!tarefa) {
-        return res.status(404).json({ error: 'Tarefa não encontrada' });
+    try {
+        await Tarefa.atualizar(id, { titulo, descricao, status });
+        res.status(200).json({ id, titulo, descricao, status });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    tarefa.titulo = titulo || tarefa.titulo;
-    tarefa.descricao = descricao || tarefa.descricao;
-    tarefa.status = status || tarefa.status;
-
-    res.status(200).json(tarefa);
 };
 
 // Deletar uma tarefa
-exports.deletarTarefa = (req, res) => {
+exports.deletarTarefa = async (req, res) => {
     const id = parseInt(req.params.id);
-    const index = tarefas.findIndex(t => t.id === id);
 
-    if (index === -1) {
-        return res.status(404).json({ error: 'Tarefa não encontrada' });
+    try {
+        await Tarefa.deletar(id);
+        res.status(204).send(); // 204 = No Content
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    tarefas.splice(index, 1);
-    res.status(204).send(); // 204 = No Content
 };

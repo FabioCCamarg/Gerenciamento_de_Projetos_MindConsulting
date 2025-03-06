@@ -1,63 +1,49 @@
-const usuarios = require('../models/usuario');
+const Usuario = require('../models/usuario');
 
-// Criar um usuário
-exports.criarUsuario = (req, res) => {
-    const { nome, email, senha } = req.body;
-
-    if (!nome || !email || !senha) {
-        return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
+exports.criarUsuario = async (req, res) => {
+    try {
+        const id = await Usuario.criar(req.body);
+        res.status(201).json({ id, ...req.body });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    const novoUsuario = { id: usuarios.length + 1, nome, email, senha };
-    usuarios.push(novoUsuario);
-
-    res.status(201).json(novoUsuario);
 };
 
-// Obter todos os usuários
-exports.obterTodos = (req, res) => {
-    res.status(200).json(usuarios);
+exports.obterTodos = async (req, res) => {
+    try {
+        const usuarios = await Usuario.obterTodos();
+        res.status(200).json(usuarios);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-// Obter um usuário por ID
-exports.obterPorId = (req, res) => {
-    const id = parseInt(req.params.id);
-    const usuario = usuarios.find(u => u.id === id);
-
-    if (!usuario) {
-        return res.status(404).json({ error: 'Usuário não encontrado' });
+exports.obterPorId = async (req, res) => {
+    try {
+        const usuario = await Usuario.obterPorId(req.params.id);
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+        res.status(200).json(usuario);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    res.status(200).json(usuario);
 };
 
-// Atualizar um usuário
-exports.atualizarUsuario = (req, res) => {
-    const id = parseInt(req.params.id);
-    const { nome, email, senha } = req.body;
-
-    const usuario = usuarios.find(u => u.id === id);
-
-    if (!usuario) {
-        return res.status(404).json({ error: 'Usuário não encontrado' });
+exports.atualizarUsuario = async (req, res) => {
+    try {
+        await Usuario.atualizar(req.params.id, req.body);
+        res.status(200).json({ id: req.params.id, ...req.body });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    usuario.nome = nome || usuario.nome;
-    usuario.email = email || usuario.email;
-    usuario.senha = senha || usuario.senha;
-
-    res.status(200).json(usuario);
 };
 
-// Deletar um usuário
-exports.deletarUsuario = (req, res) => {
-    const id = parseInt(req.params.id);
-    const index = usuarios.findIndex(u => u.id === id);
-
-    if (index === -1) {
-        return res.status(404).json({ error: 'Usuário não encontrado' });
+exports.deletarUsuario = async (req, res) => {
+    try {
+        await Usuario.deletar(req.params.id);
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    usuarios.splice(index, 1);
-    res.status(204).send(); // 204 = No Content
 };
