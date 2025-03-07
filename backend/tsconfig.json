@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "ES2020", // Versão do JavaScript gerada
+      "module": "commonjs", // Sistema de módulos
+      "outDir": "./dist", // Pasta de saída dos arquivos compilados
+      "rootDir": "./src", // Pasta de origem dos arquivos TypeScript
+      "strict": true, // Habilita verificações rigorosas de tipo
+      "esModuleInterop": true, // Permite importar módulos CommonJS como ES Modules
+      "skipLibCheck": true, // Ignora a verificação de tipos nas bibliotecas
+      "typeRoots": ["./node_modules/@types", "./src/@types"]
+    },
+    "include": ["src/**/*"], // Inclui todos os arquivos na pasta src
+    "exclude": ["node_modules"] // Exclui a pasta node_modules
+  }
