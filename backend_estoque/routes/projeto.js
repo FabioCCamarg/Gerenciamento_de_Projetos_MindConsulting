@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const projetoController = require('../controllers/projetoController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// Rotas de projeto
-router.post('/', projetoController.criarProjeto); // Criar projeto
-router.get('/', projetoController.obterTodos); // Obter todos os projetos
-router.get('/:id', projetoController.obterPorId); // Obter um projeto por ID
-router.put('/:id', projetoController.atualizarProjeto); // Atualizar um projeto
-router.delete('/:id', projetoController.deletarProjeto); // Deletar um projeto
+// Rotas protegidas
+router.post('/', authMiddleware, projetoController.criarProjeto);
+router.get('/', authMiddleware, projetoController.obterTodos);
+router.get('/:id', authMiddleware, projetoController.obterPorId);
+router.put('/:id', authMiddleware, projetoController.atualizarProjeto);
+router.delete('/:id', authMiddleware, projetoController.deletarProjeto);
 
 module.exports = router;

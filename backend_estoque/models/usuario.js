@@ -1,10 +1,12 @@
 const connection = require('../config/db');
+const bcrypt = require('bcrypt');
 
 const Usuario = {
     criar: async (usuario) => {
+        const hashedSenha = await bcrypt.hash(usuario.senha, 10); // Criptografa a senha
         const [result] = await connection.promise().query(
             'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
-            [usuario.nome, usuario.email, usuario.senha]
+            [usuario.nome, usuario.email, hashedSenha]
         );
         return result.insertId;
     },
@@ -16,10 +18,15 @@ const Usuario = {
         const [rows] = await connection.promise().query('SELECT * FROM usuarios WHERE id = ?', [id]);
         return rows[0];
     },
+    obterPorEmail: async (email) => {
+        const [rows] = await connection.promise().query('SELECT * FROM usuarios WHERE email = ?', [email]);
+        return rows[0];
+    },
     atualizar: async (id, usuario) => {
+        const hashedSenha = await bcrypt.hash(usuario.senha, 10); // Criptografa a senha
         await connection.promise().query(
             'UPDATE usuarios SET nome = ?, email = ?, senha = ? WHERE id = ?',
-            [usuario.nome, usuario.email, usuario.senha, id]
+            [usuario.nome, usuario.email, hashedSenha, id]
         );
     },
     deletar: async (id) => {
