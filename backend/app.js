@@ -14,7 +14,7 @@ app.use('/auth', authRouter);
 // Rotas
 app.use('/usuario', usuarioRouter);
 app.use('/projeto', projetoRouter);
-app.use('/tarefa', tarefaRouter);
+app.use('/api', tarefaRouter);
 app.use('/protegido', protegidoRoutes); 
 
 app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
