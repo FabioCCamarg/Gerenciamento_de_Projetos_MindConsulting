@@ -1,87 +1,195 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../services/api";
 
-interface Project {
+interface Task {
   id: number;
-  name: string;
+  title: string;
   description: string;
+  status: string;
 }
 
-const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectDescription, setNewProjectDescription] = useState('');
+const Tasks = () => {
+  const { projectId } = useParams<{ projectId: string }>();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
-  // Carrega os projetos ao carregar a página
+  // Busca as tarefas ao carregar a página
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    fetchTasks();
+  }, [projectId]);
 
-  // Função para buscar projetos
-  const fetchProjects = async () => {
+  const fetchTasks = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/projects'); // Substitua pela URL da sua API
-      setProjects(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar projetos:', error);
-    }
-  };
-
-  // Função para criar um novo projeto
-  const handleCreateProject = async () => {
-    try {
-      const response = await axios.post('http://localhost:3000/projects', {
-        name: newProjectName,
-        description: newProjectDescription,
+      const token = localStorage.getItem("token");
+      const response = await api.get(`/projeto/${projectId}/tarefa`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setProjects([...projects, response.data]);
-      setNewProjectName('');
-      setNewProjectDescription('');
+      setTasks(response.data);
     } catch (error) {
-      console.error('Erro ao criar projeto:', error);
+      setError("Erro ao buscar tarefas.");
+      console.error("Erro ao buscar tarefas:", error);
     }
   };
 
-  // Função para navegar para a página de tarefas de um projeto
-  const handleViewTasks = (projectId: number) => {
-    navigate(`/projects/${projectId}/tasks`);
+  const handleCreateTask = async () => {
+    if (!newTaskTitle || !newTaskDescription) {
+      setError("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.post(
+        `/projeto/${projectId}/tarefa`,
+        {
+          title: newTaskTitle,
+          description: newTaskDescription,
+          status: "Pendente",
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Atualiza a lista de tarefas
+      setTasks([...tasks, response.data]);
+
+      // Limpa os campos e exibe mensagem de sucesso
+      setNewTaskTitle("");
+      setNewTaskDescription("");
+      setError("");
+      setSuccessMessage("Tarefa criada com sucesso!");
+      setTimeout(() => setSuccessMessage(""), 3000); // Remove a mensagem após 3 segundos
+    } catch (error) {
+      setError("Erro ao criar tarefa.");
+      console.error("Erro ao criar tarefa:", error);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      await api.delete(`/tarefa/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Atualiza a lista de tarefas
+      setTasks(tasks.filter((t) => t.id !== taskId));
+
+      // Exibe mensagem de sucesso
+      setSuccessMessage("Tarefa excluída com sucesso!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      setError("Erro ao excluir tarefa.");
+      console.error("Erro ao excluir tarefa:", error);
+    }
+  };
+
+  const handleBackProject = async () => navigate(-1);
+
+  const handleUpdateTaskStatus = async (taskId: number, newStatus: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      await api.put(
+        `/tarefa/${taskId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Atualiza o estado local das tarefas
+      setTasks(
+        tasks.map((task) =>
+          task.id === taskId ? { ...task, status: newStatus } : task
+        )
+      );
+
+      // Exibe mensagem de sucesso
+      setSuccessMessage("Status da tarefa atualizado com sucesso!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      setError("Erro ao atualizar status da tarefa.");
+      console.error("Erro ao atualizar status da tarefa:", error);
+    }
   };
 
   return (
-    <div>
-      <h1>Projetos</h1>
+    <div className="container mt-5">
+      <h1 className="mb-4">Tarefas do Projeto {projectId}</h1>
 
-      {/* Formulário para criar um novo projeto */}
-      <div>
+      {/* Mensagens de erro e sucesso */}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success" role="alert">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Formulário para criar tarefa */}
+      <div className="mb-4">
         <input
           type="text"
-          placeholder="Nome do projeto"
-          value={newProjectName}
-          onChange={(e) => setNewProjectName(e.target.value)}
+          placeholder="Título da tarefa"
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          className="form-control mb-2"
         />
         <input
           type="text"
-          placeholder="Descrição do projeto"
-          value={newProjectDescription}
-          onChange={(e) => setNewProjectDescription(e.target.value)}
+          placeholder="Descrição da tarefa"
+          value={newTaskDescription}
+          onChange={(e) => setNewTaskDescription(e.target.value)}
+          className="form-control mb-2"
         />
-        <button onClick={handleCreateProject}>Criar Projeto</button>
+        <div className="d-flex justify-content-between">
+          <button className="btn btn-primary" onClick={handleCreateTask}>
+            Criar Tarefa
+          </button>
+          <button className="btn btn-primary" onClick={handleBackProject}>
+            Voltar
+          </button>
+        </div>
       </div>
 
-      {/* Lista de projetos */}
-      <ul>
-        {projects.map((project) => (
-          <li key={project.id}>
-            <h2>{project.name}</h2>
-            <p>{project.description}</p>
-            <button onClick={() => handleViewTasks(project.id)}>Ver Tarefas</button>
-          </li>
+      {/* Lista de tarefas */}
+      <div className="list-group">
+        {tasks.map((task) => (
+          <div key={task.id} className="list-group-item">
+            <h5>{task.title}</h5>
+            <p>{task.description}</p>
+            <p>Status: {task.status}</p>
+
+            {/* Dropdown para atualizar o status */}
+            <select
+              value={task.status}
+              onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
+              className="form-control mb-2"
+            >
+              <option value="Pendente">Pendente</option>
+              <option value="Em Andamento">Em Andamento</option>
+              <option value="Concluída">Concluída</option>
+            </select>
+
+            {/* Botão para excluir tarefa */}
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeleteTask(task.id)}
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
 
-export default Projects;
+export default Tasks;
