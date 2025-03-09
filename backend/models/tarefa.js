@@ -8,8 +8,9 @@ const Tarefa = {
         );
         return result.insertId;
     },
-    obterTodas: async () => {
-        const [rows] = await connection.promise().query('SELECT * FROM tarefas');
+    obterTodas: async (projetoId, usuarioId) => {
+        const [rows] = await connection.promise().query('SELECT * FROM tarefas WHERE projetoId = ? AND usuarioId = ?',
+            [projetoId, usuarioId]);
         return rows;
     },
     obterPorId: async (id) => {

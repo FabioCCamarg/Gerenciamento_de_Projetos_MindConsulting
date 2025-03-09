@@ -8,8 +8,8 @@ const Projeto = {
         );
         return result.insertId;
     },
-    obterTodos: async () => {
-        const [rows] = await connection.promise().query('SELECT * FROM projetos');
+    obterTodos: async (usuarioId) => {
+        const [rows] = await connection.promise().query('SELECT * FROM projetos WHERE usuarioId = ?', [usuarioId]);
         return rows;
     },
     obterPorId: async (id) => {

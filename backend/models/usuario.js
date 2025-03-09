@@ -3,10 +3,10 @@ const bcrypt = require('bcrypt');
 
 const Usuario = {
     criar: async (usuario) => {
-        const hashedSenha = await bcrypt.hash(usuario.senha, 10); // Criptografa a senha
         const [result] = await connection.promise().query(
             'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
-            [usuario.nome, usuario.email, hashedSenha]
+            [usuario.nome, usuario.email, usuario.senha]
+            
         );
         return result.insertId;
     },

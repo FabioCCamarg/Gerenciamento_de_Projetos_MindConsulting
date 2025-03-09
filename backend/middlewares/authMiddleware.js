@@ -12,6 +12,12 @@ module.exports = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, authConfig.secret);
+
+        // Verifica se o payload contém o ID do usuário
+        if (!decoded.id) {
+            return res.status(401).json({ error: 'Token inválido: ID do usuário não encontrado' });
+        }
+
         req.usuarioId = decoded.id; // Adiciona o ID do usuário à requisição
         next();
     } catch (error) {
