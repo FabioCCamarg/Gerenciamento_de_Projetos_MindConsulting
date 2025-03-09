@@ -26,9 +26,11 @@ const Tasks = () => {
   const fetchTasks = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await api.get(`/projeto/${projectId}/tarefa`, {
+      const response = await api.get(`/api/projeto/${projectId}/tarefa`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      console.log("Dados da API", response.data );
       setTasks(response.data);
     } catch (error) {
       setError("Erro ao buscar tarefas.");
@@ -45,7 +47,7 @@ const Tasks = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await api.post(
-        `/projeto/${projectId}/tarefa`,
+        `/api/projeto/${projectId}/tarefa`,
         {
           title: newTaskTitle,
           description: newTaskDescription,
@@ -91,10 +93,14 @@ const Tasks = () => {
   const handleBackProject = async () => navigate(-1);
 
   const handleUpdateTaskStatus = async (taskId: number, newStatus: string) => {
+
+    console.log("Task ID:", taskId); // Verifique se o taskId está definido
+    console.log("New Status:", newStatus); // Verifique o novo status
+
     try {
       const token = localStorage.getItem("token");
       await api.put(
-        `/tarefa/${taskId}`,
+        `/api/tarefa/${taskId}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

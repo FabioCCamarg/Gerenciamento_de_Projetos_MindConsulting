@@ -17,7 +17,7 @@ const AppRoutes = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/:projectId/edit" element={<EditProject />} />
-        <Route path="/projects/:projectId/tasks" element={<Tasks />} />
+        <Route path="/api/projects/:projectId/tasks" element={<Tasks />} />
         
         
       </Routes>

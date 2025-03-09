@@ -149,7 +149,7 @@ const Projects = () => {
               <button
                 className="btn btn-success btn-sm"
                 onClick={() =>
-                  navigate(`/projects/${project.id}/tasks`, {
+                  navigate(`/api/projects/${project.id}/tasks`, {
                     state: { projeto: project },
                   })
                 }
